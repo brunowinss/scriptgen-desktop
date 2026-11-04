@@ -8,7 +8,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test media-store.test.cjs",
-    "dist": "electron-builder --win nsis",
+    "dist": "electron-builder --win zip",
     "portable": "electron-builder --win --dir"
   },
   "devDependencies": {
@@ -28,17 +28,11 @@
       "output": "dist"
     },
     "win": {
-      "target": "nsis",
+      "target": "zip",
       "icon": "icon.png"
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "ScriptGen"
-    },
     "publish": null,
-    "artifactName": "ScriptGen-Setup-${version}.${ext}"
+    "artifactName": "ScriptGen-${version}-windows.${ext}"
   },
   "allowScripts": {
     "electron@33.2.1": true
