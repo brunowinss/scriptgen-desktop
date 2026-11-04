@@ -1,0 +1,47 @@
+{
+  "name": "scriptgen-desktop",
+  "productName": "ScriptGen",
+  "version": "1.0.0",
+  "description": "ScriptGen para Windows: o mesmo site, com cópia dos vídeos e imagens prontos em Documentos/ScriptGen.",
+  "main": "main.cjs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test media-store.test.cjs",
+    "dist": "electron-builder --win nsis",
+    "portable": "electron-builder --win --dir"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.scriptgen.desktop",
+    "productName": "ScriptGen",
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "media-store.cjs",
+      "icon.png"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "ScriptGen"
+    },
+    "publish": null,
+    "artifactName": "ScriptGen-Setup-${version}.${ext}"
+  },
+  "allowScripts": {
+    "electron@33.2.1": true
+  },
+  "author": "ScriptGen"
+}
