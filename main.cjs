@@ -87,6 +87,15 @@ async function chooseFolder() {
   return dir;
 }
 
+function testNotification() {
+  if (!Notification.isSupported()) return false;
+  new Notification({ title: 'ScriptGen', body: 'As notificações estão funcionando.', icon: path.join(__dirname, 'icon.png') }).show();
+  return true;
+}
+
+/** O que a tela "App do PC" do site mostra. */
+const appSettings = () => ({ folder: root(), isDefault: settings.isDefault(), notify: settings.notify(), version: app.getVersion() });
+
 function resetFolder() {
   const dir = settings.resetRoot();
   folderFor(dir, 'video');
@@ -111,7 +120,7 @@ function buildMenu() {
       { label: 'Voltar para Documentos\\ScriptGen', enabled: !settings.isDefault(), click: resetFolder },
       { type: 'separator' },
       { label: 'Notificar quando um vídeo ou imagem ficar pronto', type: 'checkbox', checked: settings.notify(), click: item => { settings.setNotify(item.checked); } },
-      { label: 'Testar notificação', click: () => { if (Notification.isSupported()) new Notification({ title: 'ScriptGen', body: 'As notificações estão funcionando.', icon: path.join(__dirname, 'icon.png') }).show(); } },
+      { label: 'Testar notificação', click: testNotification },
       { type: 'separator' },
       { label: `Versão ${app.getVersion()}`, enabled: false },
       { label: 'Procurar atualização', click: checkNow },
@@ -132,6 +141,12 @@ ipcMain.handle('media:open-folder', (event, kind) => {
 });
 ipcMain.handle('media:get-folder', event => (fromSite(event) ? root() : null));
 ipcMain.handle('media:choose-folder', event => (fromSite(event) ? chooseFolder() : null));
+// Tela "App do PC" dentro do site: ver e mudar as configurações sem precisar do menu de cima.
+ipcMain.handle('app:settings', event => (fromSite(event) ? appSettings() : null));
+ipcMain.handle('app:reset-folder', event => { if (!fromSite(event)) return null; resetFolder(); return appSettings(); });
+ipcMain.handle('app:set-notify', (event, on) => { if (!fromSite(event)) return null; settings.setNotify(on); buildMenu(); return appSettings(); });
+ipcMain.handle('app:test-notification', event => (fromSite(event) ? testNotification() : false));
+ipcMain.handle('app:check-update', event => { if (!fromSite(event)) return false; checkNow(); return true; });
 
 app.whenReady().then(() => {
   settings = createSettings(path.join(app.getPath('userData'), 'config.json'), path.join(app.getPath('documents'), 'ScriptGen'));

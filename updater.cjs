@@ -3,7 +3,8 @@
  * baixa em segundo plano e pergunta se pode reiniciar. Ao abrir o app e a cada 4 horas.
  * Mudanças no SITE não passam por aqui: elas já valem quando você publica no Lovable.
  */
-const { app, dialog } = require('electron');
+const { app, dialog, Notification } = require('electron');
+const path = require('node:path');
 const { autoUpdater } = require('electron-updater');
 
 const EVERY_MS = 4 * 60 * 60 * 1000;
@@ -13,6 +14,18 @@ let asked = false;
 
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
+
+// Notificação do Windows: avisa que há versão nova (baixando) e quando ela fica pronta (clique para reiniciar).
+const toast = (title, body, onClick) => {
+  if (!Notification.isSupported()) return;
+  const n = new Notification({ title, body, icon: path.join(__dirname, 'icon.png') });
+  if (onClick) n.on('click', onClick);
+  n.show();
+};
+
+autoUpdater.on('update-available', info => {
+  toast('Atualização do ScriptGen', `A versão ${info.version} está disponível. Baixando em segundo plano…`);
+});
 
 autoUpdater.on('update-not-available', () => {
   if (!manual) return;
@@ -31,6 +44,7 @@ autoUpdater.on('update-downloaded', async info => {
   manual = false;
   if (asked) return;
   asked = true;
+  toast('Atualização pronta', `A versão ${info.version} do ScriptGen está pronta. Clique para reiniciar e atualizar.`, () => setImmediate(() => autoUpdater.quitAndInstall()));
   const { response } = await dialog.showMessageBox(getWindow(), {
     type: 'info',
     title: 'Atualização pronta',
