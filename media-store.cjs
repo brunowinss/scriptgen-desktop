@@ -73,4 +73,14 @@ async function saveMedia(root, req, fetcher = fetch) {
   return { ok: true, path: target };
 }
 
-module.exports = { saveMedia, folderFor, FOLDERS, slug, safeId };
+/** Caminho do arquivo deste item na pasta do PC, ou null se ainda não foi copiado. */
+function findLocal(root, kind, rawId) {
+  const id = safeId(rawId);
+  if (!id || !FOLDERS[kind]) return null;
+  const dir = path.join(root, FOLDERS[kind]);
+  if (!fs.existsSync(dir)) return null;
+  const found = existing(dir, id);
+  return found ? path.join(dir, found) : null;
+}
+
+module.exports = { saveMedia, folderFor, findLocal, FOLDERS, slug, safeId };

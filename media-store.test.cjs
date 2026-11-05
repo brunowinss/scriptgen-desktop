@@ -3,7 +3,7 @@ const assert = require('node:assert');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { saveMedia } = require('./media-store.cjs');
+const { saveMedia, findLocal } = require('./media-store.cjs');
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'scriptgen-'));
 const fakeFetch = (bytes, type) => async () => ({ ok: true, status: 200, headers: new Map([['content-type', type], ['content-length', String(bytes.length)]]), arrayBuffer: async () => bytes });
@@ -38,4 +38,13 @@ test('recusa endereço que não é https nem data, e tipo desconhecido', async (
   assert.throws(() => require('./media-store.cjs').folderFor(root, 'exe'), /inválido/);
   const vazio = await saveMedia(root, { kind: 'video', id: '', url: 'https://x' });
   assert.equal(vazio.ok, false);
+});
+
+test('acha o arquivo de um item pelo id (para "Abrir no PC"), e null quando ainda não foi copiado', async () => {
+  const root = tmp();
+  assert.equal(findLocal(root, 'video', 'v1'), null);
+  const r = await saveMedia(root, { kind: 'video', id: 'v1', url: 'data:video/mp4;base64,' + Buffer.alloc(300, 1).toString('base64'), name: 'Kling' });
+  assert.equal(findLocal(root, 'video', 'v1'), r.path);
+  assert.equal(findLocal(root, 'image', 'v1'), null);
+  assert.equal(findLocal(root, 'exe', 'v1'), null);
 });

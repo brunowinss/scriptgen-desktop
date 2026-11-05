@@ -5,7 +5,7 @@
  */
 const { app, BrowserWindow, ipcMain, shell, Menu, dialog, Notification } = require('electron');
 const path = require('node:path');
-const { saveMedia, folderFor } = require('./media-store.cjs');
+const { saveMedia, folderFor, findLocal } = require('./media-store.cjs');
 const { createSettings } = require('./settings.cjs');
 const { startUpdates, checkNow } = require('./updater.cjs');
 
@@ -140,6 +140,15 @@ ipcMain.handle('media:open-folder', (event, kind) => {
   return shell.openPath(kind === 'video' || kind === 'image' ? folderFor(root(), kind) : root()).then(err => !err);
 });
 ipcMain.handle('media:get-folder', event => (fromSite(event) ? root() : null));
+// "Abrir no PC": abre o arquivo do item com o programa do Windows (ou mostra na pasta). Sem arquivo: false.
+ipcMain.handle('media:open-local', async (event, req) => {
+  if (!fromSite(event) || !req) return false;
+  const file = findLocal(root(), req.kind, req.id);
+  if (!file) return false;
+  if (req.reveal) { shell.showItemInFolder(file); return true; }
+  return !(await shell.openPath(file));
+});
+ipcMain.handle('media:has-local', (event, req) => (fromSite(event) && req ? !!findLocal(root(), req.kind, req.id) : false));
 ipcMain.handle('media:choose-folder', event => (fromSite(event) ? chooseFolder() : null));
 // Tela "App do PC" dentro do site: ver e mudar as configurações sem precisar do menu de cima.
 ipcMain.handle('app:settings', event => (fromSite(event) ? appSettings() : null));

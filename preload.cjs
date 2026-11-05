@@ -8,6 +8,8 @@ if (ALLOWED.includes(window.location.origin)) {
     saveMedia: req => ipcRenderer.invoke('media:save', req),
     openFolder: kind => ipcRenderer.invoke('media:open-folder', kind),
     getFolder: () => ipcRenderer.invoke('media:get-folder'),
+    openLocal: (kind, id, reveal) => ipcRenderer.invoke('media:open-local', { kind, id, reveal: !!reveal }),
+    hasLocal: (kind, id) => ipcRenderer.invoke('media:has-local', { kind, id }),
     chooseFolder: () => ipcRenderer.invoke('media:choose-folder'),
     getSettings: () => ipcRenderer.invoke('app:settings'),
     resetFolder: () => ipcRenderer.invoke('app:reset-folder'),
