@@ -1,0 +1,31 @@
+# Monta o instalador do ScriptGen para Windows e publica como nova versão (1.1.<número do build>).
+# O app instalado procura essas versões aqui e se atualiza sozinho.
+name: Publicar versão
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+      - run: npm version 1.1.${{ github.run_number }} --no-git-tag-version --allow-same-version
+      - run: npx electron-builder --win --publish always
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'

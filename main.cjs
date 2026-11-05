@@ -7,6 +7,7 @@ const { app, BrowserWindow, ipcMain, shell, Menu, dialog, Notification } = requi
 const path = require('node:path');
 const { saveMedia, folderFor } = require('./media-store.cjs');
 const { createSettings } = require('./settings.cjs');
+const { startUpdates, checkNow } = require('./updater.cjs');
 
 const SITE = process.env.SCRIPTGEN_URL || 'https://scriptgenn.lovable.app/app';
 const SITE_ORIGIN = new URL(SITE).origin;
@@ -113,6 +114,7 @@ function buildMenu() {
       { label: 'Testar notificação', click: () => { if (Notification.isSupported()) new Notification({ title: 'ScriptGen', body: 'As notificações estão funcionando.', icon: path.join(__dirname, 'icon.png') }).show(); } },
       { type: 'separator' },
       { label: `Versão ${app.getVersion()}`, enabled: false },
+      { label: 'Procurar atualização', click: checkNow },
       { role: 'toggleDevTools', label: 'Ferramentas de desenvolvedor' },
     ] },
   ]));
@@ -137,6 +139,7 @@ app.whenReady().then(() => {
   folderFor(root(), 'image');
   buildMenu();
   mainWindow = createWindow();
+  startUpdates(() => mainWindow);
 });
 app.on('second-instance', () => { if (!mainWindow) return; if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); });
 app.on('window-all-closed', () => app.quit());
