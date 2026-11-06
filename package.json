@@ -25,6 +25,7 @@
       "media-store.cjs",
       "settings.cjs",
       "updater.cjs",
+      "site-version.json",
       "icon.png"
     ],
     "directories": {

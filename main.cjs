@@ -10,6 +10,13 @@ const { createSettings } = require('./settings.cjs');
 const { startUpdates, checkNow } = require('./updater.cjs');
 
 const SITE = process.env.SCRIPTGEN_URL || 'https://scriptgenn.lovable.app/app';
+// Cada publicação do site também solta uma versão do app (o Bruno quer os dois sempre juntos): site-version.json diz de quando é o site.
+let SITE_VERSION = null;
+try { SITE_VERSION = require('./site-version.json'); } catch { /* versão antiga sem o arquivo */ }
+const siteLabel = () => {
+  if (!SITE_VERSION || !SITE_VERSION.publishedAt) return null;
+  try { return `Site de ${new Date(SITE_VERSION.publishedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`; } catch { return null; }
+};
 const SITE_ORIGIN = new URL(SITE).origin;
 let settings = null;
 const root = () => settings.root();
@@ -94,7 +101,7 @@ function testNotification() {
 }
 
 /** O que a tela "App do PC" do site mostra. */
-const appSettings = () => ({ folder: root(), isDefault: settings.isDefault(), notify: settings.notify(), version: app.getVersion() });
+const appSettings = () => ({ folder: root(), isDefault: settings.isDefault(), notify: settings.notify(), version: app.getVersion(), site: SITE_VERSION });
 
 function resetFolder() {
   const dir = settings.resetRoot();
@@ -123,6 +130,7 @@ function buildMenu() {
       { label: 'Testar notificação', click: testNotification },
       { type: 'separator' },
       { label: `Versão ${app.getVersion()}`, enabled: false },
+      ...(siteLabel() ? [{ label: siteLabel(), enabled: false }] : []),
       { label: 'Procurar atualização', click: checkNow },
       { role: 'toggleDevTools', label: 'Ferramentas de desenvolvedor' },
     ] },
